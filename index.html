@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BF双功能话术计算器</title>
+<title>BF 双功能话术生成计算器</title>
 <style>
 *{
     margin:0;
@@ -134,12 +134,16 @@ h1{
     color:#fff;
     background:#74c69d;
 }
+/* 文本框固定高度+内部滚动 */
 #cnText, #ptText, #newCnText, #newPtText{
     padding:12px;
     border-radius:10px;
     background:#fff;
     border:1px solid #95d5b2;
     color:#2f4f2f;
+    white-space: pre-line;
+    height: 160px;
+    overflow-y: auto;
 }
 .copy-btn{
     width:100%;
@@ -181,7 +185,7 @@ h1{
 
     <!-- 左右横向分栏容器 -->
     <div class="row-container">
-        <!-- 左侧：恭喜新员工入职面板 -->
+        <!-- 左侧：恭喜新员工加入面板 -->
         <div class="col-left">
             <div class="box">
                 <div class="title">
@@ -271,6 +275,19 @@ h1{
 </div>
 
 <script>
+// 等级收益数据表
+const levelIncome = {
+    F1: { daily:8, month30:240, year365:2920 },
+    F2: { daily:24, month30:720, year365:8760 },
+    F3: { daily:84, month30:2520, year365:30660 },
+    F4: { daily:300, month30:9000, year365:109500 },
+    F5: { daily:900, month30:27000, year365:328500 },
+    F6: { daily:2800, month30:84000, year365:1022000 },
+    F7: { daily:7600, month30:228000, year365:2774000 },
+    F8: { daily:20000, month30:600000, year365:7300000 },
+    F9: { daily:44000, month30:1320000, year365:16060000 }
+};
+
 // 邀请奖金对照表
 const bonusMap = {
     F1: 24,
@@ -289,6 +306,12 @@ let selectInviter = null;
 let selectTarget = null;
 let selectNewStaff = null;
 
+// 按钮原始文字缓存
+const btnOriginText = {
+    copyNewStaffBtn: "一键复制葡萄牙语话术",
+    copyAllBtn: "一键复制葡萄牙语话术"
+};
+
 // 通用按钮绑定函数
 function bindBtnGroup(groupId, textId, callback) {
     const group = document.getElementById(groupId);
@@ -300,7 +323,6 @@ function bindBtnGroup(groupId, textId, callback) {
             const val = btn.dataset.val;
             document.getElementById(textId).innerText = val;
             callback(val);
-            // 分别触发对应面板渲染
             if(groupId === "newStaffBtns"){
                 renderNewStaffText();
             }else{
@@ -310,7 +332,6 @@ function bindBtnGroup(groupId, textId, callback) {
     });
 }
 
-// 绑定三组按钮
 bindBtnGroup('newStaffBtns', 'newStaffText', v => selectNewStaff = v);
 bindBtnGroup('inviterBtns', 'inviterText', v => selectInviter = v);
 bindBtnGroup('targetBtns', 'targetText', v => selectTarget = v);
@@ -329,7 +350,6 @@ function calcRenderInvite() {
     }
 
     const bonus = bonusMap[selectInviter];
-    // 邀请默认话术（后续可替换）
     const cnMsg = `🎉恭喜！你(${selectInviter})成功邀请${selectTarget}加入BF平台，本次直推一次性推荐奖金：${bonus}雷亚尔！`;
     const ptMsg = `🎉Parabéns! Você (${selectInviter}) convidou com sucesso ${selectTarget} para a plataforma BF, o bônus de indicação único desta vez é R$${bonus}!`;
 
@@ -350,38 +370,83 @@ function renderNewStaffText() {
         ptDom.innerText = 'Aguardando selecionar o nível...';
         return;
     }
-    // 新员工默认占位话术，等你提供模板我替换
-    const cnMsg = `🎉热烈恭喜新伙伴正式成为BF平台${selectNewStaff}等级员工，开启稳定收益之路！`;
-    const ptMsg = `🎉Parabéns ao novo parceiro por se tornar funcionário de nível ${selectNewStaff} na plataforma BF, comece sua jornada de renda estável!`;
+    const income = levelIncome[selectNewStaff];
+    const cnMsg = `恭喜你成功加入${selectNewStaff}等级
+🎉🎉 恭喜！欢迎加入 BF！ 🎉🎉
+
+🥳 您已成功成为 BF 的一员，新的收益旅程正式开启！
+
+💰 您的专属收益：
+
+✨ 每日收入：R$${income.daily}
+📅 30天收入：R$${income.month30}
+📈 365天收入：R$${income.year365}
+
+🎯 每天按时完成任务，即可持续获得稳定收益，等级越高，收入越可观！
+
+🚀 愿今天成为您财富增长的新起点，坚持每天完成任务，相信您的努力一定会收获满满！
+
+🎁 再次恭喜您的加入，祝您每天都有好心情、好收益，早日晋升更高等级！🎉💰🍀`;
+    const ptMsg = `Parabéns por se tornar membro do nível ${selectNewStaff}
+🎉🎉 Parabéns! Bem-vindo à BF! 🎉🎉
+
+🥳 Você se tornou oficialmente um membro da BF, sua nova jornada de renda começou!
+
+💰 Sua renda exclusiva:
+
+✨ Renda diária: R$${income.daily}
+📅 Renda em 30 dias: R$${income.month30}
+📈 Renda em 365 dias: R$${income.year365}
+
+🎯 Conclua as tarefas diárias todos os dias para obter renda estável, quanto maior o nível, maior o ganho!
+
+🚀 Que hoje seja um novo ponto de partida para o crescimento da sua riqueza. Mantenha o hábito de completar as tarefas diárias, seu esforço trará muitos lucros!
+
+🎁 Mais uma vez parabéns pela sua entrada! Desejamos bom humor e bons ganhos todos os dias, e que você suba de nível rapidamente!🎉💰🍀`;
 
     moneyTextDom.innerText = `新员工等级：${selectNewStaff}`;
     cnDom.innerText = cnMsg;
     ptDom.innerText = ptMsg;
 }
 
-// 右侧邀请话术复制按钮：仅复制葡语
-document.getElementById('copyAllBtn').onclick = async function () {
-    const ptText = document.getElementById('ptText').innerText;
-    try {
-        await navigator.clipboard.writeText(ptText);
-        alert('葡萄牙语话术复制成功！');
-    } catch (err) {
-        alert('复制失败，请手动复制葡语文本框内文字');
-    }
-};
+// 复制核心函数
+async function copyText(btnId, textDomId) {
+    const btn = document.getElementById(btnId);
+    const textContainer = document.getElementById(textDomId);
+    const copyContent = textContainer.innerText;
 
-// 左侧新员工话术复制按钮：仅复制葡语
-document.getElementById('copyNewStaffBtn').onclick = async function () {
-    const ptText = document.getElementById('newPtText').innerText;
-    try {
-        await navigator.clipboard.writeText(ptText);
-        alert('葡萄牙语话术复制成功！');
-    } catch (err) {
-        alert('复制失败，请手动复制葡语文本框内文字');
-    }
-};
+    // 判断是否为https在线环境（Github Pages）
+    const isOnlinePage = window.location.protocol === "https:";
 
-// 页面初始化渲染一次
+    if (isOnlinePage) {
+        // 在线网页：直接全自动复制，无需手动操作
+        await navigator.clipboard.writeText(copyContent);
+        btn.innerText = "复制成功！";
+        btn.style.background = "#40916c";
+    } else {
+        // 本地file协议浏览器限制，自动全选文本，一键后仅需Ctrl+C
+        const sel = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(textContainer);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        textContainer.focus();
+        btn.innerText = "文字已全选，按Ctrl+C复制";
+        btn.style.background = "#d97706";
+    }
+
+    // 3秒恢复按钮原始文字与样式
+    setTimeout(() => {
+        btn.innerText = btnOriginText[btnId];
+        btn.style.background = "";
+    }, 3000);
+}
+
+// 绑定复制按钮
+document.getElementById('copyAllBtn').onclick = () => copyText('copyAllBtn', 'ptText');
+document.getElementById('copyNewStaffBtn').onclick = () => copyText('copyNewStaffBtn', 'newPtText');
+
+// 页面初始化
 renderNewStaffText();
 calcRenderInvite();
 </script>
