@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BF双功能话术计算器</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Microsoft Yahei", "PingFang SC", sans-serif;
+}
+body{
+    background:linear-gradient(135deg, #eaffd0 0%, #d6f5b5 45%, #b8e994 100%);
+    color:#2f4f2f;
+    padding:24px;
+    min-height:100vh;
+}
+.wrap{
+    max-width:1300px;
+    margin:0 auto;
+}
+h1{
+    text-align:center;
+    color:#2d6a4f;
+    margin-bottom:30px;
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:1px;
+}
+/* 左右横向分栏容器 */
+.row-container{
+    display:flex;
+    gap:24px;
+}
+.col-left, .col-right{
+    flex:1;
+    width:50%;
+}
+.box{
+    background:#ffffff;
+    border-radius:20px;
+    padding:26px;
+    margin-bottom:26px;
+    border:1px solid #95d5b2;
+    box-shadow:0 10px 30px rgba(45,106,79,0.12);
+    height:100%;
+}
+.title{
+    font-size:20px;
+    color:#2d6a4f;
+    margin-bottom:18px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+.title span{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    background:#74c69d;
+    color:#fff;
+    display:grid;
+    place-items:center;
+    font-weight:bold;
+    font-size:16px;
+}
+.btn-group{
+    display:grid;
+    grid-template-columns:repeat(9,1fr);
+    gap:10px;
+    margin-bottom:20px;
+}
+.level-btn{
+    padding:12px 0;
+    border:none;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.22s ease;
+    color:#2d6a4f;
+    background:#f0fff4;
+    border:2px solid #95d5b2;
+}
+.level-btn:hover{
+    background:#d9f99d;
+    border-color:#74c69d;
+    transform:translateY(-2px);
+}
+.level-btn.active{
+    background:#2d6a4f;
+    color:#fff;
+    border-color:#2d6a4f;
+    box-shadow:0 0 0 3px rgba(45,106,79,0.15);
+    transform:scale(1.05);
+}
+.tip{
+    color:#4c7c5f;
+    font-size:15px;
+    margin-top:10px;
+}
+.tip span{
+    color:#2d6a4f;
+    font-weight:bold;
+    font-size:16px;
+}
+.result-block{
+    border-radius:16px;
+    padding:24px;
+    margin-top:14px;
+    background:#f7ffe8;
+    border:2px solid #95d5b2;
+}
+.money-text{
+    font-size:24px;
+    font-weight:900;
+    text-align:center;
+    margin-bottom:20px;
+    color:#2d6a4f;
+}
+.lang-item{
+    margin-bottom:18px;
+    line-height:1.8;
+}
+.lang-label{
+    display:inline-block;
+    padding:5px 12px;
+    border-radius:8px;
+    margin-bottom:8px;
+    font-size:14px;
+    font-weight:bold;
+    color:#fff;
+    background:#74c69d;
+}
+#cnText, #ptText, #newCnText, #newPtText{
+    padding:12px;
+    border-radius:10px;
+    background:#fff;
+    border:1px solid #95d5b2;
+    color:#2f4f2f;
+}
+.copy-btn{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#2d6a4f;
+    color:#fff;
+    font-weight:800;
+    font-size:17px;
+    cursor:pointer;
+    transition:0.22s ease;
+}
+.copy-btn:hover{
+    background:#40916c;
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(45,106,79,0.35);
+}
+/* 移动端适配：屏幕变窄自动上下堆叠 */
+@media(max-width:992px){
+    .row-container{
+        flex-direction:column;
+    }
+    .col-left, .col-right{
+        width:100%;
+    }
+}
+@media(max-width:768px){
+    .btn-group{
+        grid-template-columns:repeat(3,1fr);
+    }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>BF 双功能话术生成计算器</h1>
+
+    <!-- 左右横向分栏容器 -->
+    <div class="row-container">
+        <!-- 左侧：恭喜新员工入职面板 -->
+        <div class="col-left">
+            <div class="box">
+                <div class="title">
+                    <span>①</span>
+                    恭喜新员工加入（单独面板）
+                </div>
+                <div class="btn-group" id="newStaffBtns">
+                    <button class="level-btn" data-val="F1">F1</button>
+                    <button class="level-btn" data-val="F2">F2</button>
+                    <button class="level-btn" data-val="F3">F3</button>
+                    <button class="level-btn" data-val="F4">F4</button>
+                    <button class="level-btn" data-val="F5">F5</button>
+                    <button class="level-btn" data-val="F6">F6</button>
+                    <button class="level-btn" data-val="F7">F7</button>
+                    <button class="level-btn" data-val="F8">F8</button>
+                    <button class="level-btn" data-val="F9">F9</button>
+                </div>
+                <div class="tip">当前选择新员工等级：<span id="newStaffText">未选择</span></div>
+
+                <div class="result-block" id="newStaffResultBox">
+                    <div class="money-text">请选择新员工等级生成祝贺文案</div>
+                    <div class="lang-item">
+                        <div class="lang-label">中文展示文案（仅查看）</div>
+                        <div id="newCnText">等待选择等级后生成...</div>
+                    </div>
+                    <div class="lang-item">
+                        <div class="lang-label">Texto em Português（复制内容）</div>
+                        <div id="newPtText">Aguardando selecionar o nível...</div>
+                    </div>
+                    <button class="copy-btn" id="copyNewStaffBtn">一键复制葡萄牙语话术</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：原邀请推荐奖金面板（功能完全保留） -->
+        <div class="col-right">
+            <div class="box">
+                <div class="title">
+                    <span>②</span>
+                    邀请推荐奖金计算器
+                </div>
+                <!-- 邀请人选择区 -->
+                <div class="tip" style="margin-bottom:12px">选择邀请人（你的等级）</div>
+                <div class="btn-group" id="inviterBtns">
+                    <button class="level-btn" data-val="F1">F1</button>
+                    <button class="level-btn" data-val="F2">F2</button>
+                    <button class="level-btn" data-val="F3">F3</button>
+                    <button class="level-btn" data-val="F4">F4</button>
+                    <button class="level-btn" data-val="F5">F5</button>
+                    <button class="level-btn" data-val="F6">F6</button>
+                    <button class="level-btn" data-val="F7">F7</button>
+                    <button class="level-btn" data-val="F8">F8</button>
+                    <button class="level-btn" data-val="F9">F9</button>
+                </div>
+                <div class="tip">邀请人当前选中：<span id="inviterText">未选择</span></div>
+
+                <!-- 被邀请人选择区 -->
+                <div class="tip" style="margin:20px 0 12px">选择被邀请人等级</div>
+                <div class="btn-group" id="targetBtns">
+                    <button class="level-btn" data-val="F1">F1</button>
+                    <button class="level-btn" data-val="F2">F2</button>
+                    <button class="level-btn" data-val="F3">F3</button>
+                    <button class="level-btn" data-val="F4">F4</button>
+                    <button class="level-btn" data-val="F5">F5</button>
+                    <button class="level-btn" data-val="F6">F6</button>
+                    <button class="level-btn" data-val="F7">F7</button>
+                    <button class="level-btn" data-val="F8">F8</button>
+                    <button class="level-btn" data-val="F9">F9</button>
+                </div>
+                <div class="tip">被邀请人当前选中：<span id="targetText">未选择</span></div>
+
+                <div class="result-block" id="resultBox">
+                    <div class="money-text">请先选择上方两个等级</div>
+                    <div class="lang-item">
+                        <div class="lang-label">中文展示文案（仅查看）</div>
+                        <div id="cnText">等待选择等级后生成...</div>
+                    </div>
+                    <div class="lang-item">
+                        <div class="lang-label">Texto em Português（复制内容）</div>
+                        <div id="ptText">Aguardando selecionar os níveis...</div>
+                    </div>
+                    <button class="copy-btn" id="copyAllBtn">一键复制葡萄牙语话术</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 邀请奖金对照表
+const bonusMap = {
+    F1: 24,
+    F2: 72,
+    F3: 252,
+    F4: 840,
+    F5: 2520,
+    F6: 7280,
+    F7: 19760,
+    F8: 48000,
+    F9: 96800
+};
+
+// 全局选中变量
+let selectInviter = null;
+let selectTarget = null;
+let selectNewStaff = null;
+
+// 通用按钮绑定函数
+function bindBtnGroup(groupId, textId, callback) {
+    const group = document.getElementById(groupId);
+    const btns = group.querySelectorAll('.level-btn');
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const val = btn.dataset.val;
+            document.getElementById(textId).innerText = val;
+            callback(val);
+            // 分别触发对应面板渲染
+            if(groupId === "newStaffBtns"){
+                renderNewStaffText();
+            }else{
+                calcRenderInvite();
+            }
+        };
+    });
+}
+
+// 绑定三组按钮
+bindBtnGroup('newStaffBtns', 'newStaffText', v => selectNewStaff = v);
+bindBtnGroup('inviterBtns', 'inviterText', v => selectInviter = v);
+bindBtnGroup('targetBtns', 'targetText', v => selectTarget = v);
+
+// 右侧邀请面板渲染逻辑
+function calcRenderInvite() {
+    const moneyTextDom = document.querySelector('.col-right .money-text');
+    const cnDom = document.getElementById('cnText');
+    const ptDom = document.getElementById('ptText');
+
+    if (!selectInviter || !selectTarget) {
+        moneyTextDom.innerText = '请先选择上方两个等级';
+        cnDom.innerText = '等待选择等级后生成...';
+        ptDom.innerText = 'Aguardando selecionar os níveis...';
+        return;
+    }
+
+    const bonus = bonusMap[selectInviter];
+    // 邀请默认话术（后续可替换）
+    const cnMsg = `🎉恭喜！你(${selectInviter})成功邀请${selectTarget}加入BF平台，本次直推一次性推荐奖金：${bonus}雷亚尔！`;
+    const ptMsg = `🎉Parabéns! Você (${selectInviter}) convidou com sucesso ${selectTarget} para a plataforma BF, o bônus de indicação único desta vez é R$${bonus}!`;
+
+    moneyTextDom.innerText = `本次推荐奖金：${bonus} 雷亚尔`;
+    cnDom.innerText = cnMsg;
+    ptDom.innerText = ptMsg;
+}
+
+// 左侧新员工面板渲染逻辑
+function renderNewStaffText() {
+    const moneyTextDom = document.querySelector('.col-left .money-text');
+    const cnDom = document.getElementById('newCnText');
+    const ptDom = document.getElementById('newPtText');
+
+    if (!selectNewStaff) {
+        moneyTextDom.innerText = '请选择新员工等级生成祝贺文案';
+        cnDom.innerText = '等待选择等级后生成...';
+        ptDom.innerText = 'Aguardando selecionar o nível...';
+        return;
+    }
+    // 新员工默认占位话术，等你提供模板我替换
+    const cnMsg = `🎉热烈恭喜新伙伴正式成为BF平台${selectNewStaff}等级员工，开启稳定收益之路！`;
+    const ptMsg = `🎉Parabéns ao novo parceiro por se tornar funcionário de nível ${selectNewStaff} na plataforma BF, comece sua jornada de renda estável!`;
+
+    moneyTextDom.innerText = `新员工等级：${selectNewStaff}`;
+    cnDom.innerText = cnMsg;
+    ptDom.innerText = ptMsg;
+}
+
+// 右侧邀请话术复制按钮：仅复制葡语
+document.getElementById('copyAllBtn').onclick = async function () {
+    const ptText = document.getElementById('ptText').innerText;
+    try {
+        await navigator.clipboard.writeText(ptText);
+        alert('葡萄牙语话术复制成功！');
+    } catch (err) {
+        alert('复制失败，请手动复制葡语文本框内文字');
+    }
+};
+
+// 左侧新员工话术复制按钮：仅复制葡语
+document.getElementById('copyNewStaffBtn').onclick = async function () {
+    const ptText = document.getElementById('newPtText').innerText;
+    try {
+        await navigator.clipboard.writeText(ptText);
+        alert('葡萄牙语话术复制成功！');
+    } catch (err) {
+        alert('复制失败，请手动复制葡语文本框内文字');
+    }
+};
+
+// 页面初始化渲染一次
+renderNewStaffText();
+calcRenderInvite();
+</script>
+</body>
+</html>
