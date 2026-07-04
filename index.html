@@ -106,6 +106,30 @@ h1{
     font-weight:bold;
     font-size:16px;
 }
+/* 活动奖金百分比输入区域 */
+.extra-input-wrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:16px 0;
+}
+.extra-label{
+    font-size:16px;
+    color:#2d6a4f;
+    font-weight:bold;
+}
+.extra-input{
+    flex:1;
+    padding:10px 14px;
+    border-radius:10px;
+    border:1px solid #95d5b2;
+    font-size:16px;
+    color:#2f4f2f;
+}
+.extra-input:focus{
+    outline:none;
+    border-color:#2d6a4f;
+}
 .result-block{
     border-radius:16px;
     padding:24px;
@@ -205,6 +229,13 @@ h1{
                 </div>
                 <div class="tip">当前选择新员工等级：<span id="newStaffText">未选择</span></div>
 
+                <!-- 新员工活动奖金百分比输入 -->
+                <div class="extra-input-wrap">
+                    <span class="extra-label">活动奖金百分比：</span>
+                    <input class="extra-input" id="newExtraPercent" type="number" placeholder="输入数字，如10代表10%">
+                    <span class="extra-label">%</span>
+                </div>
+
                 <div class="result-block" id="newStaffResultBox">
                     <div class="money-text">请选择新员工等级生成祝贺文案</div>
                     <div class="lang-item">
@@ -220,7 +251,7 @@ h1{
             </div>
         </div>
 
-        <!-- 右侧：原邀请推荐奖金面板（功能完全保留） -->
+        <!-- 右侧：原邀请推荐奖金面板 -->
         <div class="col-right">
             <div class="box">
                 <div class="title">
@@ -256,6 +287,13 @@ h1{
                     <button class="level-btn" data-val="F9">F9</button>
                 </div>
                 <div class="tip">被邀请人当前选中：<span id="targetText">未选择</span></div>
+
+                <!-- 邀请活动奖金百分比输入 -->
+                <div class="extra-input-wrap">
+                    <span class="extra-label">活动奖金百分比：</span>
+                    <input class="extra-input" id="inviteExtraPercent" type="number" placeholder="输入数字，如10代表10%">
+                    <span class="extra-label">%</span>
+                </div>
 
                 <div class="result-block" id="resultBox">
                     <div class="money-text">请先选择上方两个等级</div>
@@ -323,24 +361,35 @@ function bindBtnGroup(groupId, textId, callback) {
             const val = btn.dataset.val;
             document.getElementById(textId).innerText = val;
             callback(val);
-            if(groupId === "newStaffBtns"){
-                renderNewStaffText();
-            }else{
-                calcRenderInvite();
-            }
+            refreshAllText();
         };
     });
 }
 
+// 输入框变化实时刷新文案
+document.getElementById('newExtraPercent').addEventListener('input', refreshAllText);
+document.getElementById('inviteExtraPercent').addEventListener('input', refreshAllText);
+
+// 绑定等级按钮
 bindBtnGroup('newStaffBtns', 'newStaffText', v => selectNewStaff = v);
 bindBtnGroup('inviterBtns', 'inviterText', v => selectInviter = v);
 bindBtnGroup('targetBtns', 'targetText', v => selectTarget = v);
 
-// 右侧邀请面板渲染逻辑
+// 统一刷新两个面板文案
+function refreshAllText(){
+    renderNewStaffText();
+    calcRenderInvite();
+}
+
+// 右侧邀请面板渲染逻辑（修正：活动奖金基数改为邀请人自身30天收入）
 function calcRenderInvite() {
     const moneyTextDom = document.querySelector('.col-right .money-text');
     const cnDom = document.getElementById('cnText');
     const ptDom = document.getElementById('ptText');
+    const extraInput = document.getElementById('inviteExtraPercent');
+    let extraPercent = Number(extraInput.value);
+    let extraCnLine = "";
+    let extraPtLine = "";
 
     if (!selectInviter || !selectTarget) {
         moneyTextDom.innerText = '请先选择上方两个等级';
@@ -350,8 +399,18 @@ function calcRenderInvite() {
     }
 
     const bonus = bonusMap[selectInviter];
-    const cnMsg = `🎉恭喜！你(${selectInviter})成功邀请${selectTarget}加入BF平台，本次直推一次性推荐奖金：${bonus}雷亚尔！`;
-    const ptMsg = `🎉Parabéns! Você (${selectInviter}) convidou com sucesso ${selectTarget} para a plataforma BF, o bônus de indicação único desta vez é R$${bonus}!`;
+    const inviterMonth30 = levelIncome[selectInviter].month30;
+    let cnMsg = `🎉恭喜！你(${selectInviter})成功邀请${selectTarget}加入BF平台，本次直推一次性推荐奖金：${bonus}雷亚尔！`;
+    let ptMsg = `🎉Parabéns! Você (${selectInviter}) convidou com sucesso ${selectTarget} para a plataforma BF, o bônus de indicação único desta vez é R$${bonus}!`;
+
+    // 邀请活动奖金：基数=邀请人自身30天总收入，和新员工计算逻辑统一
+    if(!isNaN(extraPercent) && extraPercent > 0){
+        const activityBonus = Math.round(inviterMonth30 * extraPercent / 100);
+        extraCnLine = `\n🎁活动奖金：R$${activityBonus}`;
+        extraPtLine = `\n🎁Bônus da promoção: R$${activityBonus}`;
+        cnMsg += extraCnLine;
+        ptMsg += extraPtLine;
+    }
 
     moneyTextDom.innerText = `本次推荐奖金：${bonus} 雷亚尔`;
     cnDom.innerText = cnMsg;
@@ -363,6 +422,10 @@ function renderNewStaffText() {
     const moneyTextDom = document.querySelector('.col-left .money-text');
     const cnDom = document.getElementById('newCnText');
     const ptDom = document.getElementById('newPtText');
+    const extraInput = document.getElementById('newExtraPercent');
+    let extraPercent = Number(extraInput.value);
+    let extraCnLine = "";
+    let extraPtLine = "";
 
     if (!selectNewStaff) {
         moneyTextDom.innerText = '请选择新员工等级生成祝贺文案';
@@ -371,7 +434,8 @@ function renderNewStaffText() {
         return;
     }
     const income = levelIncome[selectNewStaff];
-    const cnMsg = `恭喜你成功加入${selectNewStaff}等级
+    // 原始中文模板
+    let cnMsg = `恭喜你成功加入${selectNewStaff}等级
 🎉🎉 恭喜！欢迎加入 BF！ 🎉🎉
 
 🥳 您已成功成为 BF 的一员，新的收益旅程正式开启！
@@ -387,7 +451,8 @@ function renderNewStaffText() {
 🚀 愿今天成为您财富增长的新起点，坚持每天完成任务，相信您的努力一定会收获满满！
 
 🎁 再次恭喜您的加入，祝您每天都有好心情、好收益，早日晋升更高等级！🎉💰🍀`;
-    const ptMsg = `Parabéns por se tornar membro do nível ${selectNewStaff}
+    // 葡语模板
+    let ptMsg = `Parabéns por se tornar membro do nível ${selectNewStaff}
 🎉🎉 Parabéns! Bem-vindo à BF! 🎉🎉
 
 🥳 Você se tornou oficialmente um membro da BF, sua nova jornada de renda começou!
@@ -404,51 +469,56 @@ function renderNewStaffText() {
 
 🎁 Mais uma vez parabéns pela sua entrada! Desejamos bom humor e bons ganhos todos os dias, e que você suba de nível rapidamente!🎉💰🍀`;
 
+    // 新员工活动奖金：基数=自身30天总收入
+    if(!isNaN(extraPercent) && extraPercent > 0){
+        const activityBonus = Math.round(income.month30 * extraPercent / 100);
+        extraCnLine = `\n🎁活动奖金：R$${activityBonus}`;
+        extraPtLine = `\n🎁Bônus da promoção: R$${activityBonus}`;
+        // 插入到365天收入下方
+        cnMsg = cnMsg.replace(`📈 365天收入：R$${income.year365}`, `📈 365天收入：R$${income.year365}${extraCnLine}`);
+        ptMsg = ptMsg.replace(`📈 Renda em 365 dias: R$${income.year365}`, `📈 Renda em 365 dias: R$${income.year365}${extraPtLine}`);
+    }
+
     moneyTextDom.innerText = `新员工等级：${selectNewStaff}`;
     cnDom.innerText = cnMsg;
     ptDom.innerText = ptMsg;
 }
 
-// 复制核心函数
+/**
+ * 复制通用函数：在线Github页面一键自动复制，本地自动选中文本
+ */
 async function copyText(btnId, textDomId) {
     const btn = document.getElementById(btnId);
-    const textContainer = document.getElementById(textDomId);
-    const copyContent = textContainer.innerText;
-
-    // 判断是否为https在线环境（Github Pages）
+    const textDom = document.getElementById(textDomId);
+    const text = textDom.innerText;
     const isOnlinePage = window.location.protocol === "https:";
 
     if (isOnlinePage) {
-        // 在线网页：直接全自动复制，无需手动操作
-        await navigator.clipboard.writeText(copyContent);
+        await navigator.clipboard.writeText(text);
         btn.innerText = "复制成功！";
         btn.style.background = "#40916c";
     } else {
-        // 本地file协议浏览器限制，自动全选文本，一键后仅需Ctrl+C
-        const sel = window.getSelection();
+        textDom.focus();
         const range = document.createRange();
-        range.selectNodeContents(textContainer);
+        range.selectNodeContents(textDom);
+        const sel = window.getSelection();
         sel.removeAllRanges();
         sel.addRange(range);
-        textContainer.focus();
         btn.innerText = "文字已全选，按Ctrl+C复制";
         btn.style.background = "#d97706";
     }
-
-    // 3秒恢复按钮原始文字与样式
     setTimeout(() => {
         btn.innerText = btnOriginText[btnId];
         btn.style.background = "";
     }, 3000);
 }
 
-// 绑定复制按钮
+// 绑定复制按钮点击事件
 document.getElementById('copyAllBtn').onclick = () => copyText('copyAllBtn', 'ptText');
 document.getElementById('copyNewStaffBtn').onclick = () => copyText('copyNewStaffBtn', 'newPtText');
 
-// 页面初始化
-renderNewStaffText();
-calcRenderInvite();
+// 页面初始化渲染
+refreshAllText();
 </script>
 </body>
 </html>
