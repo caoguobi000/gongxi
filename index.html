@@ -29,7 +29,6 @@ h1{
     font-weight:800;
     letter-spacing:1px;
 }
-/* 左右横向分栏容器 */
 .row-container{
     display:flex;
     gap:24px;
@@ -106,7 +105,6 @@ h1{
     font-weight:bold;
     font-size:16px;
 }
-/* 活动奖金百分比输入区域 */
 .extra-input-wrap{
     display:flex;
     align-items:center;
@@ -158,7 +156,6 @@ h1{
     color:#fff;
     background:#74c69d;
 }
-/* 文本框固定高度+内部滚动 */
 #cnText, #ptText, #newCnText, #newPtText{
     padding:12px;
     border-radius:10px;
@@ -187,7 +184,6 @@ h1{
     transform:translateY(-2px);
     box-shadow:0 6px 18px rgba(45,106,79,0.35);
 }
-/* 移动端适配：屏幕变窄自动上下堆叠 */
 @media(max-width:992px){
     .row-container{
         flex-direction:column;
@@ -206,10 +202,7 @@ h1{
 <body>
 <div class="wrap">
     <h1>BF 双功能话术生成计算器</h1>
-
-    <!-- 左右横向分栏容器 -->
     <div class="row-container">
-        <!-- 左侧：恭喜新员工加入面板 -->
         <div class="col-left">
             <div class="box">
                 <div class="title">
@@ -229,7 +222,6 @@ h1{
                 </div>
                 <div class="tip">当前选择新员工等级：<span id="newStaffText">未选择</span></div>
 
-                <!-- 新员工活动奖金百分比输入 -->
                 <div class="extra-input-wrap">
                     <span class="extra-label">活动奖金百分比：</span>
                     <input class="extra-input" id="newExtraPercent" type="number" placeholder="输入数字，如10代表10%">
@@ -251,14 +243,12 @@ h1{
             </div>
         </div>
 
-        <!-- 右侧：原邀请推荐奖金面板 -->
         <div class="col-right">
             <div class="box">
                 <div class="title">
                     <span>②</span>
                     邀请推荐奖金计算器
                 </div>
-                <!-- 邀请人选择区 -->
                 <div class="tip" style="margin-bottom:12px">选择邀请人（你的等级）</div>
                 <div class="btn-group" id="inviterBtns">
                     <button class="level-btn" data-val="F1">F1</button>
@@ -273,7 +263,6 @@ h1{
                 </div>
                 <div class="tip">邀请人当前选中：<span id="inviterText">未选择</span></div>
 
-                <!-- 被邀请人选择区 -->
                 <div class="tip" style="margin:20px 0 12px">选择被邀请人等级</div>
                 <div class="btn-group" id="targetBtns">
                     <button class="level-btn" data-val="F1">F1</button>
@@ -288,7 +277,6 @@ h1{
                 </div>
                 <div class="tip">被邀请人当前选中：<span id="targetText">未选择</span></div>
 
-                <!-- 邀请活动奖金百分比输入 -->
                 <div class="extra-input-wrap">
                     <span class="extra-label">活动奖金百分比：</span>
                     <input class="extra-input" id="inviteExtraPercent" type="number" placeholder="输入数字，如10代表10%">
@@ -313,7 +301,6 @@ h1{
 </div>
 
 <script>
-// 等级收益数据表
 const levelIncome = {
     F1: { daily:8, month30:240, year365:2920 },
     F2: { daily:24, month30:720, year365:8760 },
@@ -326,7 +313,6 @@ const levelIncome = {
     F9: { daily:44000, month30:1320000, year365:16060000 }
 };
 
-// 邀请奖金对照表
 const bonusMap = {
     F1: 24,
     F2: 72,
@@ -339,18 +325,15 @@ const bonusMap = {
     F9: 96800
 };
 
-// 全局选中变量
 let selectInviter = null;
 let selectTarget = null;
 let selectNewStaff = null;
 
-// 按钮原始文字缓存
 const btnOriginText = {
     copyNewStaffBtn: "一键复制葡萄牙语话术",
     copyAllBtn: "一键复制葡萄牙语话术"
 };
 
-// 通用按钮绑定函数
 function bindBtnGroup(groupId, textId, callback) {
     const group = document.getElementById(groupId);
     const btns = group.querySelectorAll('.level-btn');
@@ -366,22 +349,18 @@ function bindBtnGroup(groupId, textId, callback) {
     });
 }
 
-// 输入框变化实时刷新文案
 document.getElementById('newExtraPercent').addEventListener('input', refreshAllText);
 document.getElementById('inviteExtraPercent').addEventListener('input', refreshAllText);
 
-// 绑定等级按钮
 bindBtnGroup('newStaffBtns', 'newStaffText', v => selectNewStaff = v);
 bindBtnGroup('inviterBtns', 'inviterText', v => selectInviter = v);
 bindBtnGroup('targetBtns', 'targetText', v => selectTarget = v);
 
-// 统一刷新两个面板文案
 function refreshAllText(){
     renderNewStaffText();
     calcRenderInvite();
 }
 
-// 右侧邀请面板渲染逻辑（修正：活动奖金基数改为邀请人自身30天收入）
 function calcRenderInvite() {
     const moneyTextDom = document.querySelector('.col-right .money-text');
     const cnDom = document.getElementById('cnText');
@@ -403,7 +382,6 @@ function calcRenderInvite() {
     let cnMsg = `🎉恭喜！你(${selectInviter})成功邀请${selectTarget}加入BF平台，本次直推一次性推荐奖金：${bonus}雷亚尔！`;
     let ptMsg = `🎉Parabéns! Você (${selectInviter}) convidou com sucesso ${selectTarget} para a plataforma BF, o bônus de indicação único desta vez é R$${bonus}!`;
 
-    // 邀请活动奖金：基数=邀请人自身30天总收入，和新员工计算逻辑统一
     if(!isNaN(extraPercent) && extraPercent > 0){
         const activityBonus = Math.round(inviterMonth30 * extraPercent / 100);
         extraCnLine = `\n🎁活动奖金：R$${activityBonus}`;
@@ -417,7 +395,7 @@ function calcRenderInvite() {
     ptDom.innerText = ptMsg;
 }
 
-// 左侧新员工面板渲染逻辑
+// 【完全按你指定格式的新员工话术，无任何多余空格换行】
 function renderNewStaffText() {
     const moneyTextDom = document.querySelector('.col-left .money-text');
     const cnDom = document.getElementById('newCnText');
@@ -434,49 +412,41 @@ function renderNewStaffText() {
         return;
     }
     const income = levelIncome[selectNewStaff];
-    // 原始中文模板
+
+    // 严格复刻你给的模板格式、换行、空格
     let cnMsg = `恭喜你成功加入${selectNewStaff}等级
+
 🎉🎉 恭喜！欢迎加入 BF！ 🎉🎉
-
 🥳 您已成功成为 BF 的一员，新的收益旅程正式开启！
-
-💰 您的专属收益：
-
+💰 您的专属收益
+：
 ✨ 每日收入：R$${income.daily}
-📅 30天收入：R$${income.month30}
-📈 365天收入：R$${income.year365}
+📅 30 天收入：R$${income.month30}
+📈 365 天收入：R$${income.year365}
 
 🎯 每天按时完成任务，即可持续获得稳定收益，等级越高，收入越可观！
+🚀 愿今天成为您财富增长的新起点，坚持每天完成任务，相信您的努力一定会收获满满！`;
 
-🚀 愿今天成为您财富增长的新起点，坚持每天完成任务，相信您的努力一定会收获满满！
-
-🎁 再次恭喜您的加入，祝您每天都有好心情、好收益，早日晋升更高等级！🎉💰🍀`;
-    // 葡语模板
     let ptMsg = `Parabéns por se tornar membro do nível ${selectNewStaff}
+
 🎉🎉 Parabéns! Bem-vindo à BF! 🎉🎉
-
 🥳 Você se tornou oficialmente um membro da BF, sua nova jornada de renda começou!
-
-💰 Sua renda exclusiva:
-
+💰 Seu rendimento exclusivo
+:
 ✨ Renda diária: R$${income.daily}
-📅 Renda em 30 dias: R$${income.month30}
-📈 Renda em 365 dias: R$${income.year365}
+📅 Renda de 30 dias: R$${income.month30}
+📈 Renda de 365 dias: R$${income.year365}
 
 🎯 Conclua as tarefas diárias todos os dias para obter renda estável, quanto maior o nível, maior o ganho!
+🚀 Que hoje seja um novo ponto de partida para o crescimento da sua riqueza. Mantenha a disciplina diária e seus esforços trarão grandes resultados!`;
 
-🚀 Que hoje seja um novo ponto de partida para o crescimento da sua riqueza. Mantenha o hábito de completar as tarefas diárias, seu esforço trará muitos lucros!
-
-🎁 Mais uma vez parabéns pela sua entrada! Desejamos bom humor e bons ganhos todos os dias, e que você suba de nível rapidamente!🎉💰🍀`;
-
-    // 新员工活动奖金：基数=自身30天总收入
+    // 活动奖金依旧插入在365天收入下方
     if(!isNaN(extraPercent) && extraPercent > 0){
         const activityBonus = Math.round(income.month30 * extraPercent / 100);
         extraCnLine = `\n🎁活动奖金：R$${activityBonus}`;
         extraPtLine = `\n🎁Bônus da promoção: R$${activityBonus}`;
-        // 插入到365天收入下方
-        cnMsg = cnMsg.replace(`📈 365天收入：R$${income.year365}`, `📈 365天收入：R$${income.year365}${extraCnLine}`);
-        ptMsg = ptMsg.replace(`📈 Renda em 365 dias: R$${income.year365}`, `📈 Renda em 365 dias: R$${income.year365}${extraPtLine}`);
+        cnMsg = cnMsg.replace(`📈 365 天收入：R$${income.year365}`, `📈 365 天收入：R$${income.year365}${extraCnLine}`);
+        ptMsg = ptMsg.replace(`📈 Renda de 365 dias: R$${income.year365}`, `📈 Renda de 365 dias: R$${income.year365}${extraPtLine}`);
     }
 
     moneyTextDom.innerText = `新员工等级：${selectNewStaff}`;
@@ -484,9 +454,6 @@ function renderNewStaffText() {
     ptDom.innerText = ptMsg;
 }
 
-/**
- * 复制通用函数：在线Github页面一键自动复制，本地自动选中文本
- */
 async function copyText(btnId, textDomId) {
     const btn = document.getElementById(btnId);
     const textDom = document.getElementById(textDomId);
@@ -513,11 +480,9 @@ async function copyText(btnId, textDomId) {
     }, 3000);
 }
 
-// 绑定复制按钮点击事件
 document.getElementById('copyAllBtn').onclick = () => copyText('copyAllBtn', 'ptText');
 document.getElementById('copyNewStaffBtn').onclick = () => copyText('copyNewStaffBtn', 'newPtText');
 
-// 页面初始化渲染
 refreshAllText();
 </script>
 </body>
