@@ -31,11 +31,24 @@ h1{
 }
 .row-container{
     display:flex;
-    gap:24px;
+    gap:50px;
+    align-items: stretch;
+}
+/* 竖向文字样式 */
+.middle-brand{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    writing-mode: vertical-rl; /* 文字竖排 从上到下 */
+    text-orientation: upright;
+    font-size:34px;
+    font-weight:900;
+    color:#2d6a4f;
+    letter-spacing:6px;
+    white-space:nowrap;
 }
 .col-left, .col-right{
     flex:1;
-    width:50%;
 }
 .box{
     background:#ffffff;
@@ -196,15 +209,22 @@ h1{
     transform:translateY(-2px);
     box-shadow:0 6px 18px rgba(45,106,79,0.35);
 }
+/* 手机端适配 */
 @media(max-width:992px){
     .row-container{
         flex-direction:column;
+        gap:30px;
+    }
+    /* 移动端取消竖排，横向正常显示 */
+    .middle-brand{
+        writing-mode: unset;
+        text-orientation: unset;
+        font-size:28px;
+        padding:15px 0;
     }
     .col-left, .col-right{
         width:100%;
     }
-}
-@media(max-width:768px){
     .btn-group{
         grid-template-columns:repeat(3,1fr);
     }
@@ -219,6 +239,7 @@ h1{
 <div class="wrap">
     <h1>BF 双功能话术生成计算器</h1>
     <div class="row-container">
+        <!-- 左侧新员工面板 -->
         <div class="col-left">
             <div class="box">
                 <div class="title">
@@ -268,6 +289,10 @@ h1{
             </div>
         </div>
 
+        <!-- 中间竖向文字区域 -->
+        <div class="middle-brand">大象出品🐘</div>
+
+        <!-- 右侧邀请面板 -->
         <div class="col-right">
             <div class="box">
                 <div class="title">
@@ -549,7 +574,6 @@ function renderNewStaffText() {
 🎯 每天按时完成任务，即可持续获得稳定收益，等级越高，收入越可观！
 🚀 愿今天成为您财富增长的新起点，坚持每天完成任务，相信您的努力一定会收获满满！`;
 
-    // 葡语模板已按图二修正： Seu rendimento exclusivo: 不单独换行
     let ptMsg = `Parabéns por se tornar membro do nível ${selectNewStaff}
 
 🎉🎉 Parabéns! Bem-vindo à BF! 🎉🎉
