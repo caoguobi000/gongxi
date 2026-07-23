@@ -359,6 +359,10 @@ const bonusMap = {
     F9: 96800
 };
 
+const levelNum = {
+    F1:1,F2:2,F3:3,F4:4,F5:5,F6:6,F7:7,F8:8,F9:9
+};
+
 let selectInviter = null;
 let selectTarget = null;
 let selectNewStaff = null;
@@ -367,6 +371,9 @@ const btnOriginText = {
     copyNewStaffBtn: "一键复制葡萄牙语话术",
     copyAllBtn: "一键复制葡萄牙语话术"
 };
+
+let newStaffPtText = "";
+let invitePtText = "";
 
 function bindBtnGroup(groupId, textId, callback) {
     const group = document.getElementById(groupId);
@@ -399,51 +406,103 @@ function refreshAllText(){
     calcRenderInvite();
 }
 
+async function copyPlainText(text, btnDom) {
+    if(!text || text.trim() === ""){
+        alert("暂无可复制内容，请先选择等级生成话术");
+        return;
+    }
+    const originalText = btnDom.innerText;
+    try {
+        await navigator.clipboard.writeText(text);
+        btnDom.innerText = "复制成功！";
+        btnDom.style.background = "#40916c";
+    } catch (err) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        btnDom.innerText = "复制成功！";
+        btnDom.style.background = "#40916c";
+    }
+    setTimeout(() => {
+        btnDom.innerText = originalText;
+        btnDom.style.background = "";
+    }, 3000);
+}
+
 function calcRenderInvite() {
     const moneyTextDom = document.querySelector('.col-right .money-text');
     const cnDom = document.getElementById('cnText');
     const ptDom = document.getElementById('ptText');
     const extraInput = document.getElementById('inviteExtraPercent');
     let extraPercent = Number(extraInput.value);
-    let extraCnLine = "";
-    let extraPtLine = "";
 
     const checkCash = document.getElementById('inviteCashCode').checked;
     const checkWheel = document.getElementById('inviteWheelDraw').checked;
-    let addCn = "";
-    let addPt = "";
-    if(checkCash){
-        addCn += "\n🎉恭喜你获得一个现金代码";
-        addPt += "\n🎉Você recebeu um código de dinheiro";
-    }
-    if(checkWheel){
-        addCn += "\n🎉恭喜你获得一次抽奖机会";
-        addPt += "\n🎉Você ganhou uma chance de sorteio";
-    }
 
     if (!selectInviter || !selectTarget) {
         moneyTextDom.innerText = '请先选择上方两个等级';
         cnDom.innerText = '等待选择等级后生成...';
         ptDom.innerText = 'Aguardando selecionar os níveis...';
+        invitePtText = "";
         return;
     }
 
-    const bonus = bonusMap[selectInviter];
+    let baseBonus;
+    if(levelNum[selectTarget] > levelNum[selectInviter]){
+        baseBonus = bonusMap[selectInviter];
+    }else{
+        baseBonus = bonusMap[selectTarget];
+    }
     const inviterMonth30 = levelIncome[selectInviter].month30;
-    let cnMsg = `🎉恭喜！你(${selectInviter})成功邀请${selectTarget}加入BF平台，本次直推一次性推荐奖金：${bonus}雷亚尔！`;
-    let ptMsg = `🎉Parabéns! Você (${selectInviter}) convidou com sucesso ${selectTarget} para a plataforma BF, o bônus de indicação único desta vez é R$${bonus}!`;
+
+    let cnMsg = `🎉🎉 恭喜您成功邀请新成员${selectTarget}加入你的团队！ 🎉🎉
+
+恭喜你获得推荐奖金：${baseBonus}雷亚尔
+`;
+
+    let ptMsg = `🎉🎉 Parabéns por convidar um novo membro ${selectTarget} para sua equipe! 🎉🎉
+
+Você recebeu o bônus de indicação: R$${baseBonus}
+`;
 
     if(!isNaN(extraPercent) && extraPercent > 0){
         const activityBonus = Math.round(inviterMonth30 * extraPercent / 100);
-        extraCnLine = `\n🎁活动奖金：R$${activityBonus}`;
-        extraPtLine = `\n🎁Bônus da promoção: R$${activityBonus}`;
-        cnMsg += extraCnLine;
-        ptMsg += extraPtLine;
+        cnMsg += `\n🎁活动奖金：R$${activityBonus}`;
+        ptMsg += `\n🎁Bônus da promoção: R$${activityBonus}`;
     }
-    cnMsg += addCn;
-    ptMsg += addPt;
 
-    moneyTextDom.innerText = `本次推荐奖金：${bonus} 雷亚尔`;
+    if(checkCash){
+        cnMsg += "\n🎉恭喜你获得一个现金代码";
+        ptMsg += "\n🎉Você recebeu um código de dinheiro";
+    }
+    if(checkWheel){
+        cnMsg += "\n🎉恭喜你获得一次抽奖机会";
+        ptMsg += "\n🎉Você ganhou uma chance de sorteio";
+    }
+
+    const endCn = `
+
+之后你每天将获得来自下属的任务返佣
+
+🚀 新的伙伴，新的开始！ 愿您与团队成员一起努力，共同成长，在 BF 开启更加精彩的收益之旅！`;
+
+    const endPt = `
+
+A partir de agora você receberá comissões diárias das tarefas do seu subordinado.
+
+🚀 Novo parceiro, novo começo! Esforce-se junto com os membros da equipe, cresçam juntos e iniciem uma jornada de renda ainda mais incrível na BF!`;
+
+    cnMsg += endCn;
+    ptMsg += endPt;
+
+    invitePtText = ptMsg;
+
+    moneyTextDom.innerText = `本次推荐奖金：${baseBonus} 雷亚尔`;
     cnDom.innerText = cnMsg;
     ptDom.innerText = ptMsg;
 }
@@ -454,8 +513,6 @@ function renderNewStaffText() {
     const ptDom = document.getElementById('newPtText');
     const extraInput = document.getElementById('newExtraPercent');
     let extraPercent = Number(extraInput.value);
-    let extraCnLine = "";
-    let extraPtLine = "";
 
     const checkCash = document.getElementById('newCashCode').checked;
     const checkWheel = document.getElementById('newWheelDraw').checked;
@@ -474,6 +531,7 @@ function renderNewStaffText() {
         moneyTextDom.innerText = '请选择新员工等级生成祝贺文案';
         cnDom.innerText = '等待选择等级后生成...';
         ptDom.innerText = 'Aguardando selecionar o nível...';
+        newStaffPtText = "";
         return;
     }
     const income = levelIncome[selectNewStaff];
@@ -491,12 +549,13 @@ function renderNewStaffText() {
 🎯 每天按时完成任务，即可持续获得稳定收益，等级越高，收入越可观！
 🚀 愿今天成为您财富增长的新起点，坚持每天完成任务，相信您的努力一定会收获满满！`;
 
+    // 葡语模板已按图二修正： Seu rendimento exclusivo: 不单独换行
     let ptMsg = `Parabéns por se tornar membro do nível ${selectNewStaff}
 
 🎉🎉 Parabéns! Bem-vindo à BF! 🎉🎉
 🥳 Você se tornou oficialmente um membro da BF, sua nova jornada de renda começou!
-💰 Seu rendimento exclusivo
-:
+💰 Seu rendimento exclusivo:
+
 ✨ Renda diária: R$${income.daily}
 📅 Renda de 30 dias: R$${income.month30}
 📈 Renda de 365 dias: R$${income.year365}
@@ -504,57 +563,33 @@ function renderNewStaffText() {
 🎯 Conclua as tarefas diárias todos os dias para obter renda estável, quanto maior o nível, maior o ganho!
 🚀 Que hoje seja um novo ponto de partida para o crescimento da sua riqueza. Mantenha a disciplina diária e seus esforços trarão grandes resultados!`;
 
-    // 拼接365天收入行
     let line365Cn = `📈 365 天收入：R$${income.year365}`;
     let line365Pt = `📈 Renda de 365 dias: R$${income.year365}`;
 
     if(!isNaN(extraPercent) && extraPercent > 0){
         const activityBonus = Math.round(income.month30 * extraPercent / 100);
-        extraCnLine = `\n🎁活动奖金：R$${activityBonus}`;
-        extraPtLine = `\n🎁Bônus da promoção: R$${activityBonus}`;
-        line365Cn += extraCnLine;
-        line365Pt += extraPtLine;
+        line365Cn += `\n🎁活动奖金：R$${activityBonus}`;
+        line365Pt += `\n🎁Bônus da promoção: R$${activityBonus}`;
     }
-    // 追加现金代码、抽奖
     line365Cn += addCn;
     line365Pt += addPt;
 
     cnMsg = cnMsg.replace(`📈 365 天收入：R$${income.year365}`, line365Cn);
     ptMsg = ptMsg.replace(`📈 Renda de 365 dias: R$${income.year365}`, line365Pt);
 
+    newStaffPtText = ptMsg;
+
     moneyTextDom.innerText = `新员工等级：${selectNewStaff}`;
     cnDom.innerText = cnMsg;
     ptDom.innerText = ptMsg;
 }
 
-async function copyText(btnId, textDomId) {
-    const btn = document.getElementById(btnId);
-    const textDom = document.getElementById(textDomId);
-    const text = textDom.innerText;
-    const isOnlinePage = window.location.protocol === "https:";
-
-    if (isOnlinePage) {
-        await navigator.clipboard.writeText(text);
-        btn.innerText = "复制成功！";
-        btn.style.background = "#40916c";
-    } else {
-        textDom.focus();
-        const range = document.createRange();
-        range.selectNodeContents(textDom);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        btn.innerText = "文字已全选，按Ctrl+C复制";
-        btn.style.background = "#d97706";
-    }
-    setTimeout(() => {
-        btn.innerText = btnOriginText[btnId];
-        btn.style.background = "";
-    }, 3000);
-}
-
-document.getElementById('copyAllBtn').onclick = () => copyText('copyAllBtn', 'ptText');
-document.getElementById('copyNewStaffBtn').onclick = () => copyText('copyNewStaffBtn', 'newPtText');
+document.getElementById('copyAllBtn').onclick = function(){
+    copyPlainText(invitePtText, this);
+};
+document.getElementById('copyNewStaffBtn').onclick = function(){
+    copyPlainText(newStaffPtText, this);
+};
 
 refreshAllText();
 </script>
